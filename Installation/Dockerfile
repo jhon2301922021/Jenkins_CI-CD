@@ -30,7 +30,7 @@ RUN apt install awscli -y
 RUN apt-get install -y python3 python3-pip
 
 # Instalar el instalador de paquetes de Python3, pip
-RUN apt-get install python3-pip -y
+# RUN apt-get install python3-pip -y
 
 # Instalar GnuPG para la gestión de claves y operaciones de seguridad
 RUN apt-get install -y gnupg
