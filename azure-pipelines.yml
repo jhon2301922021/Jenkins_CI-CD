@@ -37,7 +37,30 @@ steps:
         az acr show --name $(ACR_NAME) --resource-group $(RESOURCE_GROUP) || \
         az acr create --resource-group $(RESOURCE_GROUP) --name $(ACR_NAME) --sku Basic
 
-  # Step 3: Build Docker Image
+  # Step 3: Enable ACR Admin User
+  - task: AzureCLI@2
+    displayName: 'Enable ACR Admin User'
+    inputs:
+      azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az acr update -n $(ACR_NAME) --admin-enabled true
+
+  # Step 4: Retrieve ACR Credentials
+  - task: AzureCLI@2
+    displayName: 'Retrieve ACR Credentials'
+    inputs:
+      azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        ACR_USERNAME=$(az acr credential show --name $(ACR_NAME) --query username -o tsv)
+        ACR_PASSWORD=$(az acr credential show --name $(ACR_NAME) --query passwords[0].value -o tsv)
+        echo "##vso[task.setvariable variable=ACR_USERNAME]$ACR_USERNAME"
+        echo "##vso[task.setvariable variable=ACR_PASSWORD]$ACR_PASSWORD"
+
+  # Step 5: Build Docker Image
   - task: Docker@2
     displayName: 'Build Docker Image'
     inputs:
@@ -47,7 +70,7 @@ steps:
       context: 'ml-project'
       tags: '$(IMAGE_TAG)'
 
-  # Step 4: Push Docker Image to ACR
+  # Step 6: Push Docker Image to ACR
   - task: Docker@2
     displayName: 'Push Docker Image to ACR'
     inputs:
@@ -56,7 +79,7 @@ steps:
       command: 'push'
       tags: '$(IMAGE_TAG)'
 
-  # Step 5: Deploy to Azure Container Instances
+  # Step 7: Deploy to Azure Container Instances
   - task: AzureCLI@2
     displayName: 'Deploy to Azure Container Instances'
     inputs:
@@ -64,7 +87,6 @@ steps:
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
-        az acr update -n $(ACR_NAME) --admin-enabled true
         az container create \
           --resource-group $(RESOURCE_GROUP) \
           --name $(REPOSITORY_NAME)-container \
@@ -72,7 +94,7 @@ steps:
           --cpu 1 \
           --memory 1 \
           --registry-login-server $(ACR_NAME).azurecr.io \
-          --registry-username $(az acr credential show --name $(ACR_NAME) --query username -o tsv) \
-          --registry-password $(az acr credential show --name $(ACR_NAME) --query passwords[0].value -o tsv) \
+          --registry-username $(ACR_USERNAME) \
+          --registry-password $(ACR_PASSWORD) \
           --dns-name-label $(REPOSITORY_NAME)-dns \
           --ports 8000
