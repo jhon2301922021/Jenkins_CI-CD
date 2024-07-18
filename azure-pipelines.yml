@@ -64,6 +64,8 @@ steps:
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
+        ACR_USERNAME=$(az acr credential show --name $(ACR_NAME) --query username -o tsv)
+        ACR_PASSWORD=$(az acr credential show --name $(ACR_NAME) --query passwords[0].value -o tsv)
         az container create \
           --resource-group $(RESOURCE_GROUP) \
           --name $(REPOSITORY_NAME)-container \
@@ -71,7 +73,7 @@ steps:
           --cpu 1 \
           --memory 1 \
           --registry-login-server $(ACR_NAME).azurecr.io \
-          --registry-username $(az acr credential show --name $(ACR_NAME) --query username -o tsv) \
-          --registry-password $(az acr credential show --name $(ACR_NAME) --query passwords[0].value -o tsv) \
+          --registry-username $ACR_USERNAME \
+          --registry-password $ACR_PASSWORD \
           --dns-name-label $(REPOSITORY_NAME)-dns \
           --ports 8000
