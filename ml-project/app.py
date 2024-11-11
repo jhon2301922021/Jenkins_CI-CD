@@ -1,5 +1,5 @@
 # Importamos las bibliotecas necesarias
-import uvicorn 
+import uvicorn
 from fastapi import FastAPI, File, UploadFile, Depends
 import pandas as pd
 from pydantic import BaseModel
@@ -14,7 +14,7 @@ app = FastAPI()
 @app.get("/")
 def home():
     # Retorna un simple mensaje de texto
-    return 'Hola mundo: Model API - VERSION 1'
+    return 'Hola mundo: Model API - VERSION 2'
 
 # Definir un endpoint para manejar la subida de archivos Excel
 @app.post("/upload-excel")
