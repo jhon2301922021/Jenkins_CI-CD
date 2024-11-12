@@ -1,4 +1,4 @@
-# Importamos las bibliotecas necesarias
+# Importamos las bibliotecas necesarias para crear la API
 import uvicorn
 from fastapi import FastAPI, File, UploadFile, Depends
 import pandas as pd
@@ -14,7 +14,7 @@ app = FastAPI()
 @app.get("/")
 def home():
     # Retorna un simple mensaje de texto
-    return 'Hola mundo: Model API - VERSION 2'
+    return 'Hola mundo: Model API - VERSION 3'
 
 # Definir un endpoint para manejar la subida de archivos Excel
 @app.post("/upload-excel")
